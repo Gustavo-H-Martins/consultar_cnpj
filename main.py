@@ -31,7 +31,32 @@ with open(input_csv) as f:
 
 
 # Criando o dicionário JSON
-base = {}
+base = {
+    "INDICE_CNPJ": [],
+    "NÚMERO DE INSCRIÇÃO": [], 
+    "DATA DE ABERTURA": [], 
+    "NOME EMPRESARIAL": [],
+    "TÍTULO DO ESTABELECIMENTO (NOME DE FANTASIA)" : [],
+    "PORTE": [],
+    "CÓDIGO E DESCRIÇÃO DA ATIVIDADE ECONÔMICA PRINCIPAL": [],
+    "CÓDIGO E DESCRIÇÃO DAS ATIVIDADES ECONÔMICAS SECUNDÁRIAS": [],
+    "CÓDIGO E DESCRIÇÃO DA NATUREZA JURÍDICA": [],
+    "LOGRADOURO": [],
+    "NÚMERO": [],
+    "COMPLEMENTO":[],
+    "CEP":[],
+    "BAIRRO/DISTRITO":[],
+    "MUNICÍPIO":[],
+    "UF":[],
+    "ENDEREÇO ELETRÔNICO":[],
+    "TELEFONE":[],
+    "ENTE FEDERATIVO RESPONSÁVEL (EFR)":[],
+    "SITUAÇÃO CADASTRAL":[],
+    "DATA DA SITUAÇÃO CADASTRAL":[],
+    "MOTIVO DE SITUAÇÃO CADASTRAL":[],
+    "SITUAÇÃO ESPECIAL":[],
+    "DATA DA SITUAÇÃO ESPECIAL":[]
+}
 
 async def main():
     # Instanciando e executando o processo de coleta
@@ -41,9 +66,6 @@ async def main():
         page = await context.new_page()
         # iterando sobre os cnpjs
         for cnpj in cnpjs:
-            
-            # Adicionando o CNPJ ao dicionário com as listas vazias
-            base[cnpj] = {"CABECALHO": [], "VALOR": [], "INFORMAÇÕES": []}
 
             # Verifica se a imagem do captcha existe, se sim deleta.
             if os.path.exists('./captcha.png'):
@@ -69,7 +91,7 @@ async def main():
             
             # Exibindo o captcha automaticamente
             captcha_text = input_ok("captcha.png")
-            # print(captcha_text)
+            logging.info(f"Captcha para o cnpj:{cnpj} : {captcha_text}")
 
             # Preencha o campo de texto com a resposta do captcha
             await page.fill('input[name="txtTexto_captcha_serpro_gov_br"]', captcha_text)
@@ -94,143 +116,89 @@ async def main():
             lista_dados = []
             for dado in dados:
                 lista_dados.append(dado.text)
-            if len(lista_dados) == 1:
-                print(f"{lista_dados[0]}: Captcha inválido!")
+            if len(lista_dados) == 0:
+                logging.info(f"Erro ao consultar o cnpj: {cnpj}")
             elif len(lista_dados) == 0:
-                botoes = soup.find_all("div", {"class": "botoes"})
-                print(f"{botoes.text}: Erro interno!")
+                logging.info(f"{lista_dados[0]}: Captcha inválido!")
             # Se tiver dados para retornar
             else:
+                # Adicionando o CNPJ ao dicionário
+                base["INDICE_CNPJ"].append(cnpj)
                 campos = soup.find_all("font")
                 # Iterando sobre cada campo
                 for posicao in range(len(campos)):
                     if campos[posicao].text.strip() == "NÚMERO DE INSCRIÇÃO":
-                        cabecalho_inscricao = campos[posicao].text.strip()
                         valor_inscricao = campos[posicao+1].text.strip()
-                        base[cnpj]["CABECALHO"].append(cabecalho_inscricao)
-                        base[cnpj]["VALOR"].append(valor_inscricao)
+                        base["NÚMERO DE INSCRIÇÃO"].append(valor_inscricao)
                     elif campos[posicao].text.strip() == "DATA DE ABERTURA":
-                        cabecalho_data_abertura = campos[posicao].text.strip()
                         valor_data_abertura = campos[posicao+1].text.strip()
-                        base[cnpj]["CABECALHO"].append(cabecalho_data_abertura)
-                        base[cnpj]["VALOR"].append(valor_data_abertura)
+                        base["DATA DE ABERTURA"].append(valor_data_abertura)
                     elif campos[posicao].text.strip() == "NOME EMPRESARIAL":
-                        cabecalho_nome_empresarial = campos[posicao].text.strip()
                         valor_nome_empresarial = campos[posicao+1].text.strip()
-                        base[cnpj]["CABECALHO"].append(cabecalho_nome_empresarial)
-                        base[cnpj]["VALOR"].append(valor_nome_empresarial)
+                        base["NOME EMPRESARIAL"].append(valor_nome_empresarial)
                     elif campos[posicao].text.strip() == "TÍTULO DO ESTABELECIMENTO (NOME DE FANTASIA)":
-                        cabecalho_nome_fantasia = campos[posicao].text.strip()
                         valor_nome_fantasia = campos[posicao+1].text.strip()
-                        base[cnpj]["CABECALHO"].append(cabecalho_nome_fantasia)
-                        base[cnpj]["VALOR"].append(valor_nome_fantasia)
+                        base["TÍTULO DO ESTABELECIMENTO (NOME DE FANTASIA)"].append(valor_nome_fantasia)
                     elif campos[posicao].text.strip() == "PORTE":
-                        cabecalho_porte = campos[posicao].text.strip()
                         valor_porte = campos[posicao+1].text.strip()
-                        base[cnpj]["CABECALHO"].append(cabecalho_porte)
-                        base[cnpj]["VALOR"].append(valor_porte)
+                        base["PORTE"].append(valor_porte)
                     elif campos[posicao].text.strip() == "CÓDIGO E DESCRIÇÃO DA ATIVIDADE ECONÔMICA PRINCIPAL":
-                        cabecalho_cnae_principal = campos[posicao].text.strip()
                         valor_cnae_principal = campos[posicao+1].text.strip()
-                        base[cnpj]["CABECALHO"].append(cabecalho_cnae_principal)
-                        base[cnpj]["VALOR"].append(valor_cnae_principal)
+                        base["CÓDIGO E DESCRIÇÃO DA ATIVIDADE ECONÔMICA PRINCIPAL"].append(valor_cnae_principal)
                     elif campos[posicao].text.strip() == "CÓDIGO E DESCRIÇÃO DAS ATIVIDADES ECONÔMICAS SECUNDÁRIAS":
-                        cabecalho_cnae_secundario = campos[posicao].text.strip()
                         valor_cnae_secundario = campos[posicao+1].text.strip()
-                        base[cnpj]["CABECALHO"].append(cabecalho_cnae_secundario)
-                        base[cnpj]["VALOR"].append(valor_cnae_secundario)
+                        base["CÓDIGO E DESCRIÇÃO DAS ATIVIDADES ECONÔMICAS SECUNDÁRIAS"].append(valor_cnae_secundario)
                     elif campos[posicao].text.strip() == "CÓDIGO E DESCRIÇÃO DA NATUREZA JURÍDICA":
-                        cabecalho_natureza = campos[posicao].text.strip()
                         valor_natureza = campos[posicao+1].text.strip()
-                        base[cnpj]["CABECALHO"].append(cabecalho_natureza)
-                        base[cnpj]["VALOR"].append(valor_natureza)
+                        base["CÓDIGO E DESCRIÇÃO DA NATUREZA JURÍDICA"].append(valor_natureza)
                     elif campos[posicao].text.strip() == "LOGRADOURO":
-                        cabecalho_logradouro = campos[posicao].text.strip()
                         valor_logradouro = campos[posicao+1].text.strip()
-                        base[cnpj]["CABECALHO"].append(cabecalho_logradouro)
-                        base[cnpj]["VALOR"].append(valor_logradouro)
+                        base["LOGRADOURO"].append(valor_logradouro)
                     elif campos[posicao].text.strip() == "NÚMERO":
-                        cabecalho_numero = campos[posicao].text.strip()
                         valor_numero = campos[posicao+1].text.strip()
-                        base[cnpj]["CABECALHO"].append(cabecalho_numero)
-                        base[cnpj]["VALOR"].append(valor_numero)
+                        base["NÚMERO"].append(valor_numero)
                     elif campos[posicao].text.strip() == "COMPLEMENTO":
-                        cabecalho_complemento = campos[posicao].text.strip()
                         valor_nome_complemento = campos[posicao+1].text.strip()
-                        base[cnpj]["CABECALHO"].append(cabecalho_complemento)
-                        base[cnpj]["VALOR"].append(valor_nome_complemento)
+                        base["COMPLEMENTO"].append(valor_nome_complemento)
                     elif campos[posicao].text.strip() == "CEP":
-                        cabecalho_cep = campos[posicao].text.strip()
                         valor_cep = campos[posicao+1].text.strip()
-                        base[cnpj]["CABECALHO"].append(cabecalho_cep)
-                        base[cnpj]["VALOR"].append(valor_cep)
+                        base["CEP"].append(valor_cep)
                     elif campos[posicao].text.strip() == "BAIRRO/DISTRITO":
-                        cabecalho_bairro = campos[posicao].text.strip()
                         valor_bairro = campos[posicao+1].text.strip()
-                        base[cnpj]["CABECALHO"].append(cabecalho_bairro)
-                        base[cnpj]["VALOR"].append(valor_bairro)
+                        base["BAIRRO/DISTRITO"].append(valor_bairro)
                     elif campos[posicao].text.strip() == "MUNICÍPIO":
-                        cabecalho_municipio = campos[posicao].text.strip()
                         valor_municipio = campos[posicao+1].text.strip()
-                        base[cnpj]["CABECALHO"].append(cabecalho_municipio)
-                        base[cnpj]["VALOR"].append(valor_municipio)
+                        base["MUNICÍPIO"].append(valor_municipio)
                     elif campos[posicao].text.strip() == "UF":
-                        cabecalho_uf = campos[posicao].text.strip()
                         valor_uf = campos[posicao+1].text.strip()
-                        base[cnpj]["CABECALHO"].append(cabecalho_uf)
-                        base[cnpj]["VALOR"].append(valor_uf)
+                        base["UF"].append(valor_uf)
                     elif campos[posicao].text.strip() == "ENDEREÇO ELETRÔNICO":
-                        cabecalho_email = campos[posicao].text.strip()
                         valor_email = campos[posicao+1].text.strip()
-                        base[cnpj]["CABECALHO"].append(cabecalho_email)
-                        base[cnpj]["VALOR"].append(valor_email)
+                        base["ENDEREÇO ELETRÔNICO"].append(valor_email)
                     elif campos[posicao].text.strip() == "TELEFONE":
-                        cabecalho_telefone = campos[posicao].text.strip()
                         valor_telefone = campos[posicao+1].text.strip()
-                        base[cnpj]["CABECALHO"].append(cabecalho_telefone)
-                        base[cnpj]["VALOR"].append(valor_telefone)
+                        base["TELEFONE"].append(valor_telefone)
                     elif campos[posicao].text.strip() == "ENTE FEDERATIVO RESPONSÁVEL (EFR)":
-                        cabecalho_efr = campos[posicao].text.strip()
                         valor_efr = campos[posicao+1].text.strip()
-                        base[cnpj]["CABECALHO"].append(cabecalho_efr)
-                        base[cnpj]["VALOR"].append(valor_efr)
+                        base["ENTE FEDERATIVO RESPONSÁVEL (EFR)"].append(valor_efr)
                     elif campos[posicao].text.strip() == "SITUAÇÃO CADASTRAL":
-                        cabecalho_situacao_cadastral = campos[posicao].text.strip()
                         valor_situacao_cadastral = campos[posicao+1].text.strip()
-                        base[cnpj]["CABECALHO"].append(cabecalho_situacao_cadastral)
-                        base[cnpj]["VALOR"].append(valor_situacao_cadastral)
+                        base["SITUAÇÃO CADASTRAL"].append(valor_situacao_cadastral)
                     elif campos[posicao].text.strip() == "DATA DA SITUAÇÃO CADASTRAL":
-                        cabecalho_data_situacao_cadastral = campos[posicao].text.strip()
                         valor_data_situacao_cadastral = campos[posicao+1].text.strip()
-                        base[cnpj]["CABECALHO"].append(cabecalho_data_situacao_cadastral)
-                        base[cnpj]["VALOR"].append(valor_data_situacao_cadastral)
+                        base["DATA DA SITUAÇÃO CADASTRAL"].append(valor_data_situacao_cadastral)
                     elif campos[posicao].text.strip() == "MOTIVO DE SITUAÇÃO CADASTRAL":
-                        cabecalho_motivo_situacao_cadastral = campos[posicao].text.strip()
                         valor_motivo_situacao_cadastral = campos[posicao+1].text.strip()
-                        base[cnpj]["CABECALHO"].append(cabecalho_motivo_situacao_cadastral)
-                        base[cnpj]["VALOR"].append(valor_motivo_situacao_cadastral)
+                        base["MOTIVO DE SITUAÇÃO CADASTRAL"].append(valor_motivo_situacao_cadastral)
                     elif campos[posicao].text.strip() == "SITUAÇÃO ESPECIAL":
-                        cabecalho_situacao_especial = campos[posicao].text.strip()
                         valor_situacao_especial = campos[posicao+1].text.strip()
-                        base[cnpj]["CABECALHO"].append(cabecalho_situacao_especial)
-                        base[cnpj]["VALOR"].append(valor_situacao_especial)
+                        base["SITUAÇÃO ESPECIAL"].append(valor_situacao_especial)
                     elif campos[posicao].text.strip() == "DATA DA SITUAÇÃO ESPECIAL":
-                        cabecalho_data_situacao_especial = campos[posicao].text.strip()
                         valor_data_situacao_especial = campos[posicao+1].text.strip()
-                        base[cnpj]["CABECALHO"].append(cabecalho_data_situacao_especial)
-                        base[cnpj]["VALOR"].append(valor_data_situacao_especial)
-                    elif "A dispensa de alvarás e licenças é direito do empreendedor" in campos[posicao].text.strip():
-                        paragrafo = campos[posicao].text.strip()
-                        licenca = campos[posicao+1].text.strip()
-                        data_emissao = campos[posicao+2].text.strip()
-                        base[cnpj]["INFORMAÇÕES"].append(paragrafo)
-                        base[cnpj]["INFORMAÇÕES"].append(licenca)
-                        base[cnpj]["INFORMAÇÕES"].append(data_emissao)
-            print(base)
-            sleep(5)
-            break
+                        base["DATA DA SITUAÇÃO ESPECIAL"].append(valor_data_situacao_especial)
+
         # Criando um DataFrame a partir do dicionário base
-        dataframe = pd.DataFrame.from_dict(base, orient="index")
+        dataframe = pd.DataFrame(base)
         dataframe.to_excel(output_xlsx, sheet_name="DETALHES CNPJ", index=False)
         await context.close()
         await browser.close()
