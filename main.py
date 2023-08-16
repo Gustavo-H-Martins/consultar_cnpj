@@ -16,7 +16,7 @@ load_dotenv(".env")
 # Define o diretório e nomeia os arquivos
 current_dir = os.path.dirname(os.path.abspath(__file__))
 input_csv = os.path.join(current_dir,"input.csv")
-output_xlsx = os.path.join(current_dir, "DADOS_CONSULTA_CNPJ.xlsx")
+output_csv = os.path.join(current_dir, "output.csv")
 log_file = os.path.join(current_dir, "consulta_cnpj.log")
 
 logging.basicConfig(level=logging.DEBUG, filename=log_file,encoding="utf-8", format="%(asctime)s - %(levelname)s - %(message)s")
@@ -29,35 +29,6 @@ with open(input_csv) as f:
     # Removendo duplicados
     cnpjs = list(set(cnpjs))
 
-
-# Criando o dicionário JSON
-base = {
-    "INDICE_CNPJ": [],
-    "NÚMERO DE INSCRIÇÃO": [], 
-    "DATA DE ABERTURA": [], 
-    "NOME EMPRESARIAL": [],
-    "TÍTULO DO ESTABELECIMENTO (NOME DE FANTASIA)" : [],
-    "PORTE": [],
-    "CÓDIGO E DESCRIÇÃO DA ATIVIDADE ECONÔMICA PRINCIPAL": [],
-    "CÓDIGO E DESCRIÇÃO DAS ATIVIDADES ECONÔMICAS SECUNDÁRIAS": [],
-    "CÓDIGO E DESCRIÇÃO DA NATUREZA JURÍDICA": [],
-    "LOGRADOURO": [],
-    "NÚMERO": [],
-    "COMPLEMENTO":[],
-    "CEP":[],
-    "BAIRRO/DISTRITO":[],
-    "MUNICÍPIO":[],
-    "UF":[],
-    "ENDEREÇO ELETRÔNICO":[],
-    "TELEFONE":[],
-    "ENTE FEDERATIVO RESPONSÁVEL (EFR)":[],
-    "SITUAÇÃO CADASTRAL":[],
-    "DATA DA SITUAÇÃO CADASTRAL":[],
-    "MOTIVO DE SITUAÇÃO CADASTRAL":[],
-    "SITUAÇÃO ESPECIAL":[],
-    "DATA DA SITUAÇÃO ESPECIAL":[]
-}
-
 async def main():
     # Instanciando e executando o processo de coleta
     async with async_playwright() as p:
@@ -66,7 +37,33 @@ async def main():
         page = await context.new_page()
         # iterando sobre os cnpjs
         for cnpj in cnpjs:
-
+            # Criando o dicionário JSON
+            base = {
+                "INDICE_CNPJ": [],
+                "NÚMERO DE INSCRIÇÃO": [], 
+                "DATA DE ABERTURA": [], 
+                "NOME EMPRESARIAL": [],
+                "TÍTULO DO ESTABELECIMENTO (NOME DE FANTASIA)" : [],
+                "PORTE": [],
+                "CÓDIGO E DESCRIÇÃO DA ATIVIDADE ECONÔMICA PRINCIPAL": [],
+                "CÓDIGO E DESCRIÇÃO DAS ATIVIDADES ECONÔMICAS SECUNDÁRIAS": [],
+                "CÓDIGO E DESCRIÇÃO DA NATUREZA JURÍDICA": [],
+                "LOGRADOURO": [],
+                "NÚMERO": [],
+                "COMPLEMENTO":[],
+                "CEP":[],
+                "BAIRRO/DISTRITO":[],
+                "MUNICÍPIO":[],
+                "UF":[],
+                "ENDEREÇO ELETRÔNICO":[],
+                "TELEFONE":[],
+                "ENTE FEDERATIVO RESPONSÁVEL (EFR)":[],
+                "SITUAÇÃO CADASTRAL":[],
+                "DATA DA SITUAÇÃO CADASTRAL":[],
+                "MOTIVO DE SITUAÇÃO CADASTRAL":[],
+                "SITUAÇÃO ESPECIAL":[],
+                "DATA DA SITUAÇÃO ESPECIAL":[]
+            }
             # Verifica se a imagem do captcha existe, se sim deleta.
             if os.path.exists('./captcha.png'):
                 os.system("del captcha.png")
@@ -129,6 +126,7 @@ async def main():
                 for posicao in range(len(campos)):
                     if campos[posicao].text.strip() == "NÚMERO DE INSCRIÇÃO":
                         valor_inscricao = campos[posicao+1].text.strip()
+                        valor_inscricao = valor_inscricao.replace("\n", " ")
                         base["NÚMERO DE INSCRIÇÃO"].append(valor_inscricao)
                     elif campos[posicao].text.strip() == "DATA DE ABERTURA":
                         valor_data_abertura = campos[posicao+1].text.strip()
@@ -196,10 +194,11 @@ async def main():
                     elif campos[posicao].text.strip() == "DATA DA SITUAÇÃO ESPECIAL":
                         valor_data_situacao_especial = campos[posicao+1].text.strip()
                         base["DATA DA SITUAÇÃO ESPECIAL"].append(valor_data_situacao_especial)
+                
+                # Criando um DataFrame a partir do dicionário base
+                dataframe = pd.DataFrame.from_dict(base, orient='columns')
+                dataframe.to_csv(output_csv,sep=";", encoding='utf-8', index=False, mode='a', header=False)
 
-        # Criando um DataFrame a partir do dicionário base
-        dataframe = pd.DataFrame(base)
-        dataframe.to_excel(output_xlsx, sheet_name="DETALHES CNPJ", index=False)
         await context.close()
         await browser.close()
 
