@@ -145,7 +145,10 @@ async def main():
                         base["CÓDIGO E DESCRIÇÃO DA ATIVIDADE ECONÔMICA PRINCIPAL"].append(valor_cnae_principal)
                     elif campos[posicao].text.strip() == "CÓDIGO E DESCRIÇÃO DAS ATIVIDADES ECONÔMICAS SECUNDÁRIAS":
                         valor_cnae_secundario = campos[posicao+1].text.strip()
-                        base["CÓDIGO E DESCRIÇÃO DAS ATIVIDADES ECONÔMICAS SECUNDÁRIAS"].append(valor_cnae_secundario)
+                        if len(valor_cnae_secundario) == 0:
+                            base["CÓDIGO E DESCRIÇÃO DAS ATIVIDADES ECONÔMICAS SECUNDÁRIAS"].append(" ")
+                        else:
+                            base["CÓDIGO E DESCRIÇÃO DAS ATIVIDADES ECONÔMICAS SECUNDÁRIAS"].append(valor_cnae_secundario)
                     elif campos[posicao].text.strip() == "CÓDIGO E DESCRIÇÃO DA NATUREZA JURÍDICA":
                         valor_natureza = campos[posicao+1].text.strip()
                         base["CÓDIGO E DESCRIÇÃO DA NATUREZA JURÍDICA"].append(valor_natureza)
@@ -172,7 +175,10 @@ async def main():
                         base["UF"].append(valor_uf)
                     elif campos[posicao].text.strip() == "ENDEREÇO ELETRÔNICO":
                         valor_email = campos[posicao+1].text.strip()
-                        base["ENDEREÇO ELETRÔNICO"].append(valor_email)
+                        if len(valor_email) == 0:
+                            base["ENDEREÇO ELETRÔNICO"].append(" ")
+                        else:
+                            base["ENDEREÇO ELETRÔNICO"].append(valor_email)
                     elif campos[posicao].text.strip() == "TELEFONE":
                         valor_telefone = campos[posicao+1].text.strip()
                         base["TELEFONE"].append(valor_telefone)
@@ -187,7 +193,10 @@ async def main():
                         base["DATA DA SITUAÇÃO CADASTRAL"].append(valor_data_situacao_cadastral)
                     elif campos[posicao].text.strip() == "MOTIVO DE SITUAÇÃO CADASTRAL":
                         valor_motivo_situacao_cadastral = campos[posicao+1].text.strip()
-                        base["MOTIVO DE SITUAÇÃO CADASTRAL"].append(valor_motivo_situacao_cadastral)
+                        if len(valor_motivo_situacao_cadastral) == 0:
+                            base["MOTIVO DE SITUAÇÃO CADASTRAL"].append(" ")
+                        else:
+                            base["MOTIVO DE SITUAÇÃO CADASTRAL"].append(valor_motivo_situacao_cadastral)
                     elif campos[posicao].text.strip() == "SITUAÇÃO ESPECIAL":
                         valor_situacao_especial = campos[posicao+1].text.strip()
                         base["SITUAÇÃO ESPECIAL"].append(valor_situacao_especial)
