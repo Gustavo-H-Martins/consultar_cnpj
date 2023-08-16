@@ -10,18 +10,21 @@ from dotenv import load_dotenv
 from bs4 import BeautifulSoup
 import pandas as pd
 from utilitarios import input_ok
-load_dotenv(".env")
 
+load_dotenv(".env")
+input_file = os.environ.get("input")
+output_file = os.environ.get("output")
+log_file = os.environ.get("log")
 
 # Define o diretório e nomeia os arquivos
 current_dir = os.path.dirname(os.path.abspath(__file__))
-input_csv = os.path.join(current_dir,"input.csv")
-output_csv = os.path.join(current_dir, "output.csv")
-log_file = os.path.join(current_dir, "consulta_cnpj.log")
+input_path = os.path.join(current_dir,input_file)
+output_path = os.path.join(current_dir, output_file)
+log_path = os.path.join(current_dir, log_file)
 
-logging.basicConfig(level=logging.DEBUG, filename=log_file,encoding="utf-8", format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(level=logging.DEBUG, filename=log_path,encoding="utf-8", format="%(asctime)s - %(levelname)s - %(message)s")
 
-with open(input_csv) as f:
+with open(input_path) as f:
     # Lendo todo o arquivo na variável cnpjs
     cnpjs = f.readlines()[1:]
     # Removendo caracteres não numéricos
@@ -206,7 +209,7 @@ async def main():
                 
                 # Criando um DataFrame a partir do dicionário base
                 dataframe = pd.DataFrame.from_dict(base, orient='columns')
-                dataframe.to_csv(output_csv,sep=";", encoding='utf-8', index=False, mode='a', header=False)
+                dataframe.to_csv(output_path,sep=";", encoding='utf-8', index=False, mode='a', header=False)
 
         await context.close()
         await browser.close()
